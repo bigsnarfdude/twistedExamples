@@ -2,20 +2,24 @@ from twisted.internet import reactor, protocol, endpoints
 
 
 class UpperProtocol(protocol.Protocol):
+    
 
     def connectionMade(self):
-        self.transport.write("Hi! Send me text to convert to uppercase\n")
+        self.factory.count += 1
+        self.transport.write("Hi! Send me text to convert to uppercase, count = %s \n" % self.factory.count)
 
     def connectionLost(self, reason):
-        pass
+        self.factory.count -= 1
 
     def dataReceived(self, data):
         self.transport.write(data.upper())
         self.transport.loseConnection()
 
 
-factory = protocol.ServerFactory()
-factory.protocol = UpperProtocol
+class CountingFactory(protocol.ServerFactory):
 
-endpoints.serverFromString(reactor, "tcp:8000").listen(factory)
+    protocol = UpperProtocol
+    count = 0
+
+endpoints.serverFromString(reactor, "tcp:8000").listen(CountingFactory())
 reactor.run()
