@@ -2,11 +2,12 @@ from twisted.internet import protocol, reactor, defer, utils
 from twisted.protocols import basic
 from twisted.web import client
 
+
 class FingerProtocol(basic.LineReceiver):
- 
+
     def lineReceived(self, user):
         d = self.factory.getUser(user)
-    
+
         def onError(err):
             return 'Internal error in server'
         d.addErrback(onError)
@@ -24,7 +25,7 @@ class FingerFactory(protocol.ServerFactory):
         self.prefix = prefix
 
     def getUser(self, user):
-        return client.getPage(self.prefix+user)
+        return client.getPage(self.prefix + user)
 
 # setup the objects and run the instance
 reactor.listenTCP(1079, FingerFactory(prefix='http://livejournal.com/~'))
