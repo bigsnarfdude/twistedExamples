@@ -2,7 +2,9 @@ from twisted.internet import protocol, reactor, defer, utils
 from twisted.protocols import basic
 from twisted.web import client
 
+
 class FingerProtocol(basic.LineReceiver):
+
     def lineReceived(self, user):
         d = self.factory.getUser(user)
 
@@ -15,15 +17,16 @@ class FingerProtocol(basic.LineReceiver):
             self.transport.loseConnection()
         d.addCallback(writeResponse)
 
+
 class FingerFactory(protocol.ServerFactory):
-        protocol = FingerProtocol
+    protocol = FingerProtocol
 
-        def __init__(self, prefix):
-            self.prefix=prefix
+    def __init__(self, prefix):
+        self.prefix = prefix
 
-        def getUser(self, user):
-            return client.getPage(self.prefix+user)
+    def getUser(self, user):
+        return client.getPage(self.prefix + user)
+
 
 reactor.listenTCP(1079, FingerFactory(prefix='http://livejournal.com/~'))
 reactor.run()
-
