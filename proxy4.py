@@ -15,29 +15,28 @@ class CacheServerProxyProtocol(basic.LineReceiver):
 
     def lineReceived(self, line):
         if not line.startswith("http://"):
-            return
+            pass
         
-        if line in self.cache:
+        elif line in self.cache:
             page = self.cache[line]
-            return self.results_to_client(page)
+            self.results_to_client(page)
 
         else:
-            result = getPage(line)
-            return self.results_to_client(result)
+            d = getPage(line)
+            d.addCallback(self.addCache, line)
+            d.addCallback(self.results_to_client)
     
-    @addCallback.inline
-    def addCache(self, url, page):
+    def addCache(self, page, url):
         self.cache[url] = page
         return page
     
-    @addCallback.inline
     def results_to_client(self, page):
         self.transport.write(page)
         self.transport.loseConnection()
 
          
 factory = protocol.ServerFactory()
-factory.protocol = CacheServerProxyProtocol()
+factory.protocol = CacheServerProxyProtocol
 
 endpoints.serverFromString(reactor, "tcp:8000").listen(factory)
 reactor.run()
